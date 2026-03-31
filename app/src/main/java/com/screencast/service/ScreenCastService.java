@@ -111,6 +111,7 @@ public class ScreenCastService extends Service {
                 imageReader.getSurface(), null, handler);
 
         wsClient = new WebSocketClient(Config.WS_URL);
+        wsClient.setScreenDimensions(screenWidth, screenHeight);
         wsClient.connect();
 
         isRunning = true;
