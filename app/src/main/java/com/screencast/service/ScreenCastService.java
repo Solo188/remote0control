@@ -82,8 +82,13 @@ public class ScreenCastService extends Service {
         WindowManager wm = (WindowManager) getSystemService(WINDOW_SERVICE);
         wm.getDefaultDisplay().getRealMetrics(metrics);
 
-        screenWidth = metrics.widthPixels / Config.SCREEN_SCALE;
-        screenHeight = metrics.heightPixels / Config.SCREEN_SCALE;
+        // Реальные размеры экрана — нужны для правильных координат тапов
+        int realWidth = metrics.widthPixels;
+        int realHeight = metrics.heightPixels;
+
+        // Уменьшенные размеры — для захвата и стриминга (меньше трафика)
+        screenWidth = realWidth / Config.SCREEN_SCALE;
+        screenHeight = realHeight / Config.SCREEN_SCALE;
         screenDensity = metrics.densityDpi;
 
         handlerThread = new HandlerThread("ScreenCapture");
@@ -111,7 +116,9 @@ public class ScreenCastService extends Service {
                 imageReader.getSurface(), null, handler);
 
         wsClient = new WebSocketClient(Config.WS_URL);
-        wsClient.setScreenDimensions(screenWidth, screenHeight);
+        // Передаём РЕАЛЬНЫЕ размеры экрана, а не уменьшенные
+        // Иначе тап в центре картинки попадёт в четверть экрана
+        wsClient.setScreenDimensions(realWidth, realHeight);
         wsClient.connect();
 
         isRunning = true;
@@ -169,26 +176,11 @@ public class ScreenCastService extends Service {
 
     private void stopCasting() {
         isRunning = false;
-        if (virtualDisplay != null) {
-            virtualDisplay.release();
-            virtualDisplay = null;
-        }
-        if (imageReader != null) {
-            imageReader.close();
-            imageReader = null;
-        }
-        if (mediaProjection != null) {
-            mediaProjection.stop();
-            mediaProjection = null;
-        }
-        if (wsClient != null) {
-            wsClient.disconnect();
-            wsClient = null;
-        }
-        if (handlerThread != null) {
-            handlerThread.quitSafely();
-            handlerThread = null;
-        }
+        if (virtualDisplay != null) { virtualDisplay.release(); virtualDisplay = null; }
+        if (imageReader != null) { imageReader.close(); imageReader = null; }
+        if (mediaProjection != null) { mediaProjection.stop(); mediaProjection = null; }
+        if (wsClient != null) { wsClient.disconnect(); wsClient = null; }
+        if (handlerThread != null) { handlerThread.quitSafely(); handlerThread = null; }
     }
 
     private void createNotificationChannel() {
@@ -226,9 +218,7 @@ public class ScreenCastService extends Service {
     }
 
     @Override
-    public IBinder onBind(Intent intent) {
-        return null;
-    }
+    public IBinder onBind(Intent intent) { return null; }
 
     @Override
     public void onDestroy() {
