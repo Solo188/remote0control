@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">ScreenCast</string>
+    <string name="accessibility_service_description">Позволяет управлять телефоном удалённо через браузер. Нажатия в браузере на трансляцию экрана преобразуются в реальные жесты на устройстве.</string>
+</resources>

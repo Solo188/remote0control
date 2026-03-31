@@ -1,0 +1,3 @@
+-keep class com.screencast.** { *; }
+-keep class okhttp3.** { *; }
+-dontwarn okhttp3.**
